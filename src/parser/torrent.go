@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"bytes"
+	"crypto/sha1"
 	"fmt"
 	"os"
 
@@ -30,6 +32,19 @@ type Torrent struct {
 	Name        string
 }
 
+func (bi *bencodedTorrentInfo) sha() ([20]byte, error) {
+	var buffer bytes.Buffer
+
+	err := bencode.Marshal(&buffer, *bi)
+
+	if err != nil {
+		return [20]byte{}, err
+	}
+
+	hash := sha1.Sum(buffer.Bytes())
+	return hash, nil
+}
+
 func (bt *bencodedTorrent) toString() string {
 	return fmt.Sprint("Announce: ", bt.Announce, "\nComment: ", bt.Comment, "\nCreation Date: ", bt.CreationDate, "\nLength: ", bt.Info.Length, "\nName: ", bt.Info.Name, "\nPiece Length: ", bt.Info.PieceLength, "\nPieces (head): ", bt.Info.Pieces[0:20])
 }
@@ -37,6 +52,7 @@ func (bt *bencodedTorrent) toString() string {
 func (bt *bencodedTorrent) ToTorrent() (Torrent, error) {
 	torrent := Torrent{}
 	fmt.Println(bt.toString())
+
 	return torrent, nil
 }
 
